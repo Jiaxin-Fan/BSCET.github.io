@@ -14,3 +14,5 @@ output:
    html_document:
       theme: cosmo
       highlight: textmate
+
+output_dir: "docs"
