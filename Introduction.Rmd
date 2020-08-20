@@ -1,7 +1,5 @@
 ---
 title: "Detecting cell-type-specific AEI in bulk RNA-seq"
-author: 
-   - Jiaxin Fan^[jiaxinf@pennmedicine.upenn.edu]
 output: 
    html_document:
       number_sections: FALSE
@@ -176,5 +174,4 @@ p_value = summary(mod)$coefficient[,4][8:13]
 print(round(p_value,5))
 ```
 
-#### References
-________________
+***

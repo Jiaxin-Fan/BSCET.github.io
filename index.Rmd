@@ -3,7 +3,6 @@ title: "Detecting cell-type-specific AEI in bulk RNA-seq"
 output: 
    html_document
 ---
-$~$
 
 Methods Overview
 -------------------
@@ -24,3 +23,5 @@ Please cite the following publication:
 More Information
 -----------------
 Please see [Tutorial](https://github.com/Jiaxin-Fan/BSCET.github.io/blob/master/docs/Introduction.html). 
+
+***
