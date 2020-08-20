@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+<meta name="author" content="Jiaxin Fan" />
+
+
+<title>Detecting cell-type-specific AEI in bulk RNA-seq</title>
+
+<script src="site_libs/header-attrs-2.1/header-attrs.js"></script>
+<script src="site_libs/jquery-1.12.4/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/textmate.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<script src="site_libs/htmlwidgets-1.5.1/htmlwidgets.js"></script>
+<link href="site_libs/datatables-css-0.0.0/datatables-crosstalk.css" rel="stylesheet" />
+<script src="site_libs/datatables-binding-0.13/datatables.js"></script>
+<link href="site_libs/dt-core-1.10.20/css/jquery.dataTables.min.css" rel="stylesheet" />
+<link href="site_libs/dt-core-1.10.20/css/jquery.dataTables.extra.css" rel="stylesheet" />
+<script src="site_libs/dt-core-1.10.20/js/jquery.dataTables.min.js"></script>
+<link href="site_libs/crosstalk-1.1.0.1/css/crosstalk.css" rel="stylesheet" />
+<script src="site_libs/crosstalk-1.1.0.1/js/crosstalk.min.js"></script>
+<link href="site_libs/font-awesome-5.1.0/css/all.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-5.1.0/css/v4-shims.css" rel="stylesheet" />
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 51px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h2 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h3 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h4 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h5 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h6 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #ffffff;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">BSCET</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li>
+  <a href="introduction.html">Tutorial</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li>
+  <a href="https://github.com/Jiaxin-Fan/BSCET.github.io">
+    <span class="fa fa-github fa-lg"></span>
+     
+  </a>
+</li>
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">Detecting cell-type-specific AEI in bulk RNA-seq</h1>
+<h4 class="author">Jiaxin Fan<a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a></h4>
+
+</div>
+
+<div id="TOC">
+<ul>
+<li><a href="#step-1-estimate-cell-type-proportions-by-deconvolution">Step 1: Estimate cell type proportions by deconvolution</a></li>
+<li><a href="#step-2-detect-cell-type-specific-aei">Step 2: Detect cell-type-specific AEI</a></li>
+<li><a href="#step-2-extension-associate-cell-type-specific-aei-with-covariates">Step 2 extension: Associate cell-type-specific AEI with covariates</a></li>
+</ul>
+</div>
+
+<p>This vignette provides a walk through tutorial on how to use BSCET to characterize cell-type-specific allelic expression imbalance (AEI), and the association of cell-type-specific AEI with clinical factors by integrative analysis of bulk and single cell RNA sequencing (RNA-seq) data. BSCET involves two steps. First, using MuSiC <span class="citation">(Wang et al. <a href="#ref-music" role="doc-biblioref">2019</a>)</span>, we infer cell type proportions in the bulk RNA-seq samples by incorporating cell-type-specific gene expression information provided by a scRNA-seq reference. Second, for each heterozugous transcribed SNP, BSCET then aggregates allele-specific read counts from the bulk RNA-seq data across individuals to model cell-type-specific expression difference between two alleles by linear regression, and tests for the evidence of cell-type-specific AEI.</p>
+<style>
+figure{
+  text-align: center;
+}
+</style>
+<figure>
+<p align="center">
+<img src="Figure.jpg" title="fig:" style="width:60.0%" alt="Figure 1: Overview of BSCET" />
+</p>
+</figure>
+<p>Below, using the human pancreas datasets, we demonstrate BSCET step by step.</p>
+<div id="step-1-estimate-cell-type-proportions-by-deconvolution" class="section level2">
+<h2>Step 1: Estimate cell type proportions by deconvolution</h2>
+<p>Following MuSiC <span class="citation">(Wang et al. <a href="#ref-music" role="doc-biblioref">2019</a>)</span>, we deconvolve bulk RNA-seq data of 89 subjects from <span class="citation">Fadista et al. (<a href="#ref-fadista" role="doc-biblioref">2014</a>)</span> using single cell reference obtained from <span class="citation">Segerstolpe et al. (<a href="#ref-seger" role="doc-biblioref">2016</a>)</span>. We constrained our estimation on 6 well-studied cell types: acinar, alpha, beta, delta, ductal and gamma. Both bulk and single cell data used are in the form of ExpressionSet.</p>
+<pre class="r"><code>library(MuSiC)
+library(xbioc)
+fadista.eset = readRDS(&quot;./GSE50244bulkeset.rds&quot;)
+seger.eset = readRDS(&quot;./EMTABesethealthy.rds&quot;)
+est.prop = music_prop(bulk.eset = fadista.eset, sc.eset = seger.eset, clusters = &#39;cellType&#39;,
+                               samples = &#39;sampleID&#39;, select.ct = c(&#39;acinar&#39;,&#39;alpha&#39;, &#39;beta&#39;, &#39;delta&#39;,&#39;ductal&#39;,
+                                                                   &#39;gamma&#39;), verbose = F)$Est.prop.weighted</code></pre>
+<p>Below shows the estimated cell type proportions for each individual.</p>
+<div id="htmlwidget-2041a3557d6c1c28dedf" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-2041a3557d6c1c28dedf">{"x":{"filter":"none","data":[["Sub1","Sub2","Sub3","Sub4","Sub5","Sub6","Sub7","Sub8","Sub9","Sub10","Sub11","Sub12","Sub13","Sub14","Sub15","Sub16","Sub17","Sub18","Sub19","Sub20","Sub21","Sub22","Sub23","Sub24","Sub25","Sub26","Sub27","Sub28","Sub29","Sub30","Sub31","Sub32","Sub33","Sub34","Sub35","Sub36","Sub37","Sub38","Sub39","Sub40","Sub41","Sub42","Sub43","Sub44","Sub45","Sub46","Sub47","Sub48","Sub49","Sub50","Sub51","Sub52","Sub53","Sub54","Sub55","Sub56","Sub57","Sub58","Sub59","Sub60","Sub61","Sub62","Sub63","Sub64","Sub65","Sub66","Sub67","Sub68","Sub69","Sub70","Sub71","Sub72","Sub73","Sub74","Sub75","Sub76","Sub77","Sub78","Sub79","Sub80","Sub81","Sub82","Sub83","Sub84","Sub85","Sub86","Sub87","Sub88","Sub89"],[0.096,0.031,0.191,0.054,0.254,0.007,0.094,0.088,0.095,0.148,0.438,0.154,0.069,0.384,0.063,0.084,0.02,0.069,0.153,0.017,0.016,0.187,0.194,0.096,0.256,0.368,0.151,0.141,0.042,0.06,0.132,0.212,0.056,0.165,0.254,0.385,0.073,0.026,0.15,0.575,0.121,0.181,0.098,0.158,0.029,0.356,0.214,0.049,0.028,0.088,0.083,0.125,0.358,0.182,0.278,0.345,0.091,0.039,0.217,0.289,0.473,0.022,0.074,0.14,0.072,0.053,0.257,0.085,0.052,0.188,0.142,0.017,0.084,0.299,0.032,0.051,0.095,0.017,0.222,0.297,0.053,0.229,0.257,0.088,0.075,0.115,0.044,0.012,0.01],[0.208,0.696,0.191,0.234,0.216,0.203,0.218,0.14,0.058,0.227,0.045,0.174,0.114,0.104,0.676,0.146,0.194,0.132,0.184,0.539,0.184,0.24,0.439,0.103,0.135,0.284,0.216,0.601,0.384,0.591,0.247,0.269,0.295,0.476,0.1,0.264,0.613,0.303,0.096,0.089,0.249,0.354,0.714,0.18,0.528,0.365,0.159,0.259,0.652,0.382,0.225,0.252,0.138,0.228,0.093,0.107,0.223,0.11,0.115,0.148,0.168,0.709,0.701,0.324,0.175,0.052,0.117,0.251,0.318,0.383,0.514,0.155,0.654,0.208,0.139,0.421,0.243,0.483,0.549,0.279,0.435,0.059,0.145,0.138,0.441,0.433,0.194,0.574,0.368],[0.175,0.12,0.352,0.467,0.013,0.635,0.554,0.643,0.387,0.003,0.127,0.263,0.491,0.002,0.055,0.494,0.547,0.538,0.405,0.257,0.675,0.262,0.129,0.42,0.125,0.01,0.359,0.014,0.375,0.231,0.31,0.163,0.472,0.273,0.334,0.026,0.147,0.583,0.54,0.082,0.337,0.106,0.003,0.327,0.309,0.131,0.397,0.48,0.165,0.31,0.345,0.294,0.116,0.382,0.232,0.001,0.386,0.55,0.309,0.048,0.188,0.133,0.115,0.317,0.239,0.511,0.372,0.474,0.451,0.107,0.004,0.701,0.02,0.001,0.299,0.388,0.22,0.319,0.001,0.001,0.296,0.174,0.155,0.373,0.146,0.221,0.249,0.334,0.5],[0.002,0.004,0.032,0.009,0.002,0.004,0.012,0.019,0.007,0.004,0.003,0.003,0.017,0.002,0.02,0.017,0.036,0.018,0.015,0.021,0.037,0.004,0.027,0.031,0.011,0.004,0.013,0.004,0.019,0.01,0.004,0.009,0.015,0.025,0.004,0.018,0.024,0.029,0.019,0.001,0.011,0.017,0.015,0.02,0.022,0.007,0.016,0.017,0.008,0.007,0.01,0.053,0.006,0.01,0.012,0.001,0.006,0.018,0.013,0.015,0.011,0.011,0.012,0.004,0.007,0.014,0.003,0.023,0.032,0.006,0.01,0.007,0.008,0.003,0.005,0.037,0.007,0.017,0.007,0.004,0.012,0.015,0.002,0.004,0.008,0.008,0.008,0.018,0.015],[0.518,0.149,0.233,0.213,0.514,0.152,0.121,0.106,0.452,0.617,0.386,0.402,0.298,0.507,0.185,0.256,0.201,0.241,0.237,0.166,0.089,0.305,0.204,0.348,0.471,0.334,0.26,0.24,0.177,0.107,0.306,0.344,0.159,0.061,0.302,0.305,0.143,0.049,0.171,0.25,0.281,0.339,0.169,0.314,0.104,0.139,0.208,0.169,0.148,0.213,0.336,0.273,0.378,0.196,0.372,0.544,0.293,0.281,0.339,0.501,0.155,0.122,0.098,0.213,0.435,0.36,0.248,0.162,0.148,0.313,0.329,0.117,0.233,0.487,0.522,0.099,0.434,0.163,0.219,0.419,0.203,0.512,0.441,0.396,0.328,0.223,0.495,0.045,0.103],[0.002,0.001,0,0.023,0.001,0.001,0,0.005,0.001,0,0,0.004,0.011,0.002,0,0.003,0.002,0.003,0.005,0,0,0.002,0.006,0.003,0.003,0,0,0,0.002,0.001,0,0.002,0.002,0.001,0.006,0.002,0.001,0.011,0.025,0.003,0.001,0.003,0.001,0.001,0.007,0.003,0.005,0.026,0,0,0.001,0.002,0.004,0.002,0.013,0.002,0,0.003,0.006,0.001,0.005,0.003,0,0.001,0.072,0.01,0.002,0.005,0.001,0.002,0,0.003,0.002,0.002,0.003,0.004,0.001,0.002,0,0,0.001,0.009,0,0.001,0.002,0,0.01,0.017,0.004]],"container":"<table class=\"cell-border stripe\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>acinar<\/th>\n      <th>alpha<\/th>\n      <th>beta<\/th>\n      <th>delta<\/th>\n      <th>ductal<\/th>\n      <th>gamma<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"pageLength":5,"fixedColumns":true,"dom":"rtp","pagingType":"numbers","columnDefs":[{"className":"dt-center","targets":[0,1,2,3,4,5]},{"className":"dt-right","targets":6},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false,"lengthMenu":[5,10,25,50,100]}},"evals":[],"jsHooks":[]}</script>
+</div>
+<div id="step-2-detect-cell-type-specific-aei" class="section level2">
+<h2>Step 2: Detect cell-type-specific AEI</h2>
+<p>Given the estimated cell type proportions, for each heterozugous transcribed SNP, BSCET aggregates allele-specific read counts of the bulk RNA-seq data across individuals and detects cell-type-specific AEI of the SNP. The input allelic bulk RNA-seq data contain columns:</p>
+<ul>
+<li><code>SNP</code>: character, the name or chromosome location of each heterozygous transcriobed SNP;</li>
+<li><code>ref</code>: numeric, the SNP-level allele-specific read counts of the reference allele;</li>
+<li><code>alt</code>: numeric, the SNP-level allele-specific read counts of the alternative allele;</li>
+<li><code>id</code>: character, individual identifier;</li>
+</ul>
+<p>The tables below show an example allelic RNA-seq data of SNP chr1:22336305.</p>
+<div id="htmlwidget-9282cd92730eb41651c6" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-9282cd92730eb41651c6">{"x":{"filter":"none","data":[["chr1:22336305","chr1:22336305","chr1:22336305","chr1:22336305","chr1:22336305","chr1:22336305","chr1:22336305","chr1:22336305","chr1:22336305","chr1:22336305","chr1:22336305","chr1:22336305","chr1:22336305","chr1:22336305","chr1:22336305","chr1:22336305","chr1:22336305","chr1:22336305","chr1:22336305","chr1:22336305","chr1:22336305","chr1:22336305","chr1:22336305","chr1:22336305","chr1:22336305","chr1:22336305","chr1:22336305","chr1:22336305","chr1:22336305"],["Sub1","Sub16","Sub18","Sub19","Sub21","Sub24","Sub26","Sub27","Sub29","Sub35","Sub36","Sub38","Sub40","Sub46","Sub52","Sub54","Sub59","Sub6","Sub61","Sub63","Sub64","Sub66","Sub68","Sub73","Sub75","Sub81","Sub83","Sub84","Sub89"],[64,112,196,508,46,246,125,649,69,1181,470,89,330,730,576,307,407,20,1666,48,93,350,186,19,18,7,64,57,22],[66,290,352,32,14,424,171,921,251,1629,516,102,666,1163,593,636,639,26,2606,85,124,457,280,33,14,21,100,62,36]],"container":"<table class=\"cell-border stripe\">\n  <thead>\n    <tr>\n      <th>SNP<\/th>\n      <th>id<\/th>\n      <th>ref<\/th>\n      <th>alt<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"pageLength":5,"fixedColumns":true,"dom":"rtp","pagingType":"numbers","columnDefs":[{"className":"dt-center","targets":[0,1,2,3]}],"order":[],"autoWidth":false,"orderClasses":false,"lengthMenu":[5,10,25,50,100]}},"evals":[],"jsHooks":[]}</script>
+<p>Let <span class="math inline">\(X_j^T\)</span> and <span class="math inline">\(X_j^t\)</span> be the read counts for the reference and alternative alleles of the transcribed SNP, respectively. The difference of two allele-specific reads can be expressed as:</p>
+<p><span class="math display">\[X_j^T-X_j^t = \alpha+m_j\sum_{k=1}^Kp_j^k\theta^k+\epsilon_j\]</span> where the intercept <span class="math inline">\(\alpha\)</span> captures the allelic expression difference not explained by the selected <span class="math inline">\(K\)</span> cell types; <span class="math inline">\(m_j\)</span> captures total number of cells in the bulk tissue for individual <span class="math inline">\(j\)</span>; <span class="math inline">\(p_j^k\)</span> represents the cell type proportions of cell type <span class="math inline">\(k\)</span> for individual <span class="math inline">\(j\)</span>; <span class="math inline">\(θ^k\)</span> represents allelic expression difference between two alleles of the transcribed SNP for cell type <span class="math inline">\(k\)</span>; <span class="math inline">\(\epsilon_j\)</span> is the random error term and assumed to follow <span class="math inline">\(N(0,\sigma^2)\)</span>. To detect cell-type-specific AEI in the population, for cell type <span class="math inline">\(k\)</span>, using t statistic, we test the following hypothesis:</p>
+<p><span class="math display">\[H_0: \theta^k=0  \;\; vs \;\;  H_1: \theta^k \neq 0\]</span> As <span class="math inline">\(m_j\)</span> is not observed for the bulk data, we esimate it using the individual-specific library size factor using DESeq2 <span class="citation">(Anders and Huber <a href="#ref-deseq" role="doc-biblioref">2010</a>)</span>. DESeq2 takes the bulk-level gene expression matrix obtained from the ExpressionSet as the input.</p>
+<pre class="r"><code>library(DESeq2)
+expmat &lt;- exprs(fadista.eset)
+#
+#colnames(expmat) = as.character(colnames(expmat))
+coldata = matrix(colnames(expmat),ncol=1)
+colnames(coldata) = &#39;id&#39;
+rownames(coldata) = colnames(expmat)
+dds &lt;- DESeqDataSetFromMatrix(countData = expmat,
+                              colData = coldata,
+                              design = ~ id)</code></pre>
+<pre><code>## Warning in DESeqDataSet(se, design = design, ignoreRank): some variables in design formula are characters, converting to
+## factors</code></pre>
+<pre class="r"><code>dds &lt;- estimateSizeFactors(dds)
+mj = sizeFactors(dds)
+head(mj)</code></pre>
+<pre><code>##      Sub1      Sub2      Sub3      Sub4      Sub5      Sub6 
+## 0.9595915 0.9580428 1.0016846 0.8483268 1.0137396 0.8437796</code></pre>
+<p>For each individual, calculated <span class="math inline">\(m_jp_j^k\)</span> and combinine it with the allelic count data, we can have the data as the following:</p>
+<div id="htmlwidget-dd713c75bf9ee79226c4" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-dd713c75bf9ee79226c4">{"x":{"filter":"none","data":[["Sub1","Sub16","Sub18","Sub19","Sub21","Sub24","Sub26","Sub27","Sub29","Sub35","Sub36","Sub38","Sub40","Sub46","Sub52","Sub54","Sub59","Sub6","Sub61","Sub63","Sub64","Sub66","Sub68","Sub73","Sub75","Sub81","Sub83","Sub84","Sub89"],["chr1:22336305","chr1:22336305","chr1:22336305","chr1:22336305","chr1:22336305","chr1:22336305","chr1:22336305","chr1:22336305","chr1:22336305","chr1:22336305","chr1:22336305","chr1:22336305","chr1:22336305","chr1:22336305","chr1:22336305","chr1:22336305","chr1:22336305","chr1:22336305","chr1:22336305","chr1:22336305","chr1:22336305","chr1:22336305","chr1:22336305","chr1:22336305","chr1:22336305","chr1:22336305","chr1:22336305","chr1:22336305","chr1:22336305"],[64,112,196,508,46,246,125,649,69,1181,470,89,330,730,576,307,407,20,1666,48,93,350,186,19,18,7,64,57,22],[66,290,352,32,14,424,171,921,251,1629,516,102,666,1163,593,636,639,26,2606,85,124,457,280,33,14,21,100,62,36],[0.092,0.108,0.095,0.187,0.019,0.125,0.234,0.173,0.057,0.316,0.408,0.03,0.338,0.383,0.169,0.203,0.264,0.006,0.535,0.061,0.123,0.063,0.102,0.074,0.036,0.06,0.175,0.078,0.008],[0.2,0.188,0.183,0.225,0.216,0.134,0.18,0.248,0.52,0.124,0.279,0.344,0.052,0.393,0.34,0.255,0.14,0.171,0.189,0.576,0.283,0.062,0.3,0.58,0.156,0.485,0.099,0.122,0.291],[0.168,0.635,0.746,0.495,0.794,0.546,0.007,0.413,0.507,0.415,0.028,0.663,0.048,0.141,0.397,0.426,0.376,0.535,0.213,0.095,0.277,0.609,0.566,0.018,0.334,0.331,0.105,0.329,0.396],[0.002,0.021,0.025,0.019,0.043,0.04,0.002,0.015,0.026,0.005,0.019,0.033,0.001,0.007,0.071,0.011,0.016,0.003,0.013,0.01,0.003,0.017,0.027,0.007,0.005,0.013,0.001,0.004,0.012],[0.497,0.329,0.334,0.29,0.104,0.453,0.212,0.299,0.24,0.375,0.323,0.056,0.147,0.15,0.369,0.219,0.413,0.128,0.176,0.081,0.186,0.429,0.194,0.206,0.584,0.226,0.3,0.349,0.082],[0.002,0.004,0.004,0.006,0,0.004,0,0,0.003,0.007,0.002,0.012,0.002,0.003,0.003,0.002,0.008,0.001,0.005,0,0.001,0.012,0.006,0.002,0.003,0.001,0,0.001,0.003]],"container":"<table class=\"cell-border stripe\">\n  <thead>\n    <tr>\n      <th>id<\/th>\n      <th>SNP<\/th>\n      <th>ref<\/th>\n      <th>alt<\/th>\n      <th>acinar<\/th>\n      <th>alpha<\/th>\n      <th>beta<\/th>\n      <th>delta<\/th>\n      <th>ductal<\/th>\n      <th>gamma<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"pageLength":5,"scrollY":"650px","sScrollX":"100%","scrollCollapse":true,"pagingType":"numbers","dom":"rtp","columnDefs":[{"className":"dt-center","targets":[0,1,2,3,4,5,6,7,8,9]}],"order":[],"autoWidth":false,"orderClasses":false,"lengthMenu":[5,10,25,50,100]}},"evals":[],"jsHooks":[]}</script>
+<p>Then, regressing the difference of two allele-specific read counts over <span class="math inline">\(m_jp_j^k\)</span> through linear regression, we can obtain the p-values of AEI detection for each cell type. As we can see below, the SNP was detected as having cell-type-specific AEI for acinar cells.</p>
+<pre class="r"><code>mod=lm(ref-alt ~ `acinar`+`alpha`+`beta`+`delta`+`ductal`+`gamma`,data=dat)
+p_value = summary(mod)$coefficient[,4][-1]
+print(round(p_value,5))</code></pre>
+<pre><code>##  acinar   alpha    beta   delta  ductal   gamma 
+## 0.00032 0.44113 0.09326 0.22204 0.93712 0.75730</code></pre>
+</div>
+<div id="step-2-extension-associate-cell-type-specific-aei-with-covariates" class="section level2">
+<h2>Step 2 extension: Associate cell-type-specific AEI with covariates</h2>
+<p>We can readily extend the model in step 2 to assess covariate effects on cell-type-specific AEI. Let <span class="math inline">\(V_j\)</span> be the covariate of interest for individual <span class="math inline">\(j\)</span>. We can modify the model by adding an interaction term between the covariate and the estimated cell type proportions:</p>
+<p><span class="math display">\[X_j^T-X_j^t=\alpha+m_j\sum_{k=1}^Kp_j^k(\theta^k +V_j \theta_{\Delta}^k)+ \epsilon_j\]</span><br />
+where <span class="math inline">\(\theta_{\Delta}^k\)</span> is the covariate effect on the cell-type-specific AEI. In practice we will likely test for the covariate effect on cell-type-specific AEI only if a cell-type-specific AEI has been detected based on model in step 2. Therefore, here, we are interested in testing whether the cell-type-specific AEI changes with the covariate, i.e., for each cell type <span class="math inline">\(k\)</span>, we test the following hypothesis:</p>
+<p><span class="math display">\[H_0: \theta_{\Delta}^k=0   \;\; vs \;\;  H_1: \theta_{\Delta}^k\neq 0\]</span></p>
+<p>As the bulk RNA-seq data are from pancreatic islets, here, we test for the effect of HbA1c, a well-known biomarker for T2D diagnosis, on cell-type-specific AEI. By including HbA1c, we can have the data as the following:</p>
+<div id="htmlwidget-982724ce7499602e6a2f" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-982724ce7499602e6a2f">{"x":{"filter":"none","data":[["Sub1","Sub16","Sub18","Sub19","Sub21","Sub24","Sub26","Sub27","Sub29","Sub35","Sub36","Sub38","Sub40","Sub46","Sub52","Sub54","Sub59","Sub6","Sub61","Sub63","Sub64","Sub66","Sub68","Sub73","Sub75","Sub81","Sub83","Sub84","Sub89"],["chr1:22336305","chr1:22336305","chr1:22336305","chr1:22336305","chr1:22336305","chr1:22336305","chr1:22336305","chr1:22336305","chr1:22336305","chr1:22336305","chr1:22336305","chr1:22336305","chr1:22336305","chr1:22336305","chr1:22336305","chr1:22336305","chr1:22336305","chr1:22336305","chr1:22336305","chr1:22336305","chr1:22336305","chr1:22336305","chr1:22336305","chr1:22336305","chr1:22336305","chr1:22336305","chr1:22336305","chr1:22336305","chr1:22336305"],[64,112,196,508,46,246,125,649,69,1181,470,89,330,730,576,307,407,20,1666,48,93,350,186,19,18,7,64,57,22],[66,290,352,32,14,424,171,921,251,1629,516,102,666,1163,593,636,639,26,2606,85,124,457,280,33,14,21,100,62,36],[0.092,0.108,0.095,0.187,0.019,0.125,0.234,0.173,0.057,0.316,0.408,0.03,0.338,0.383,0.169,0.203,0.264,0.006,0.535,0.061,0.123,0.063,0.102,0.074,0.036,0.06,0.175,0.078,0.008],[0.2,0.188,0.183,0.225,0.216,0.134,0.18,0.248,0.52,0.124,0.279,0.344,0.052,0.393,0.34,0.255,0.14,0.171,0.189,0.576,0.283,0.062,0.3,0.58,0.156,0.485,0.099,0.122,0.291],[0.168,0.635,0.746,0.495,0.794,0.546,0.007,0.413,0.507,0.415,0.028,0.663,0.048,0.141,0.397,0.426,0.376,0.535,0.213,0.095,0.277,0.609,0.566,0.018,0.334,0.331,0.105,0.329,0.396],[0.002,0.021,0.025,0.019,0.043,0.04,0.002,0.015,0.026,0.005,0.019,0.033,0.001,0.007,0.071,0.011,0.016,0.003,0.013,0.01,0.003,0.017,0.027,0.007,0.005,0.013,0.001,0.004,0.012],[0.497,0.329,0.334,0.29,0.104,0.453,0.212,0.299,0.24,0.375,0.323,0.056,0.147,0.15,0.369,0.219,0.413,0.128,0.176,0.081,0.186,0.429,0.194,0.206,0.584,0.226,0.3,0.349,0.082],[0.002,0.004,0.004,0.006,0,0.004,0,0,0.003,0.007,0.002,0.012,0.002,0.003,0.003,0.002,0.008,0.001,0.005,0,0.001,0.012,0.006,0.002,0.003,0.001,0,0.001,0.003],[5.8,4.6,5.3,4.5,4.3,5.5,5.8,6,7,6.2,5,6,5.6,8,5.5,6.4,5.4,5.5,6,5.4,5.7,5.2,5.2,5.7,5.7,5.5,6.4,6.7,5.3]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>id<\/th>\n      <th>SNP<\/th>\n      <th>ref<\/th>\n      <th>alt<\/th>\n      <th>acinar<\/th>\n      <th>alpha<\/th>\n      <th>beta<\/th>\n      <th>delta<\/th>\n      <th>ductal<\/th>\n      <th>gamma<\/th>\n      <th>HbA1c<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"pageLength":5,"scrollY":"650px","sScrollX":"100%","scrollCollapse":true,"pagingType":"numbers","dom":"rtp","columnDefs":[{"className":"dt-center","targets":[0,1,2,3,4,5,6,7,8,9,10]}],"order":[],"autoWidth":false,"orderClasses":false,"lengthMenu":[5,10,25,50,100]}},"evals":[],"jsHooks":[]}</script>
+<p>Model the difference of two allele-specific read counts over the interaction between HbA1c and the estimated cell type proportions through linear regression, we can obtain the p-values, i.e., the significance, of the effect of HbA1c on cell-type-specific AEI. As we can see below, cell-type-specific AEI was not associated with HbA1c level for all cell types.</p>
+<pre class="r"><code>mod=lm(ref-alt ~ `acinar`+`alpha`+`beta`+`delta`+`ductal`+`gamma`+
+          HbA1c:(`acinar`+`alpha`+`beta`+`delta`+`ductal`+`gamma`),data=dat)
+p_value = summary(mod)$coefficient[,4][8:13]
+print(round(p_value,5))</code></pre>
+<pre><code>## acinar:HbA1c  alpha:HbA1c   beta:HbA1c  delta:HbA1c ductal:HbA1c  gamma:HbA1c 
+##      0.49077      0.05900      0.16795      0.05154      0.39757      0.13501</code></pre>
+<div id="references" class="section level4">
+<h4>References</h4>
+<hr />
+<div id="refs" class="references hanging-indent">
+<div id="ref-deseq">
+<p>Anders, S., and W. Huber. 2010. “Differential Expression Analysis for Sequence Count Data.” <em>Genome Biology</em> 11: R106.</p>
+</div>
+<div id="ref-fadista">
+<p>Fadista, J., P. Vikman, E. O. Laakso, I. G. Mollet, J. L. Esguerra, J. Taneera, P. Storm, et al. 2014. “Global Genomic and Transcriptomic Analysis of Human Pancreatic Islets Reveals Novel Genes Influencing Glucose Metabolism.” <em>Proceedings of the National Academy of Sciences of the United States of America</em> 111: 13924.</p>
+</div>
+<div id="ref-seger">
+<p>Segerstolpe, å., A. Palasantza, P. Eliasson, E. Andersson, A. Andréasson, X. Sun, S. Picelli, et al. 2016. “Single-Cell Transcriptome Profiling of Human Pancreatic Islets in Health and Type 2 Diabetes.” <em>Cell Metabolism</em> 24: 593–607.</p>
+</div>
+<div id="ref-music">
+<p>Wang, X., J. Park, K. Susztak, N. R. Zhang, and M. Li. 2019. “Bulk Tissue Cell Type Deconvolution with Multi-Subject Single-Cell Expression Reference.” <em>Nature Communications</em> 10: 380.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="footnotes">
+<hr />
+<ol>
+<li id="fn1"><p><a href="mailto:jiaxinf@pennmedicine.upenn.edu" class="email">jiaxinf@pennmedicine.upenn.edu</a><a href="#fnref1" class="footnote-back">↩︎</a></p></li>
+</ol>
+</div>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open')
+  });
+});
+</script>
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,26 @@
+---
+title: "Detecting cell-type-specific AEI in bulk RNA-seq"
+output: 
+   html_document
+---
+$~$
+
+Methods Overview
+-------------------
+
+We proposed `BSCET`, a two-step regression-based procedure that allows us to integrate \underline{B}ulk and \underline{S}ingle-cell RNA-seq data to detect \underline{CE}ll-\underline{T}ype-specific allelic expression imbalance (AEI). In the first step, `BSCET` performs cell-type deconvolution analysis to infer cell type composition in bulk RNA-seq data using scRNA-seq data as the reference. In the second step, given estimated cell type proportions of bulk RNA-seq samples, `BSCET` tests cell-type-specific AEI by aggregating allele-specific bulk RNA-seq read counts across individuals. Since the degree of AEI may vary with disease phenotypes, we further extend `BSCET` to incorporate clinical factors such as disease status to infer covariate effects on cell-type-specific AEI. 
+
+<p align="center"> 
+![Figure 1: Overview of BSCET](./Figure.jpg){width="60%"}
+</p>
+
+How to cite `BSCET`
+-------------------
+Please cite the following publication:
+
+> *Detecting cell-type-specific allelic expression imbalance by integrative analysis of bulk and single-cell RNA sequencing data*<br />
+> <small>J. Fan, X. Wang, R. Xiao, M. Li<br /></small>
+
+More Information
+-----------------
+Please see [Tutorial](./_site/introduction.html).

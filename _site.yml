@@ -1,0 +1,16 @@
+name: "BSCET"
+navbar:
+  title: "BSCET"
+  left:
+    - text: 'Home'
+      href: index.html
+    - text: "Tutorial"
+      href: introduction.html
+  right:
+    - icon: fa-github fa-lg
+      href: https://github.com/Jiaxin-Fan/BSCET.github.io
+      
+output: 
+   html_document:
+      theme: cosmo
+      highlight: textmate
