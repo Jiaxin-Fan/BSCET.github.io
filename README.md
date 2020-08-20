@@ -16,6 +16,6 @@ Please cite the following publication:
 
 More Information
 -----------------
-Please see [Tutorial](https://jiaxin-fan.github.io/BSCET.github.io/).
+Please see [Tutorial](https://jiaxin-fan.github.io/BSCET.github.io/Introduction.html).
 
 ***
