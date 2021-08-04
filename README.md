@@ -13,7 +13,7 @@ Please cite the following publication:
 
 > *Detecting cell-type-specific allelic expression imbalance by integrative analysis of bulk and single-cell RNA sequencing data*<br />
 > <small>J. Fan, X. Wang, R. Xiao, M. Li<br /></small>
-> (https://www.biorxiv.org/content/10.1101/2020.08.26.267815v1) 
+> *PLOS Genetics 17(3): e1009080.* https://journals.plos.org/plosgenetics/article?id=10.1371/journal.pgen.1009080<br />
 
 More Information
 -----------------

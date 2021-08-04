@@ -53,7 +53,7 @@ In this step, we aim to infer cell type proportions in the bulk RNA-seq samples 
 
 ### Data preparation
 
-MuSiC [@music] takes a bulk RNA-seq data that contain a mixture expression of various cell types, and a scRNA-seq data that include the single cell expression from multiple samples as input. Both datasets should be in the form of `ExpressionSet`, a convenient data structure to hold expression data along with sample/feature annotation. The details of constructing ExpressionSet can be found on [this page](https://www.bioconductor.org/packages/release/bioc/vignettes/Biobase/inst/doc/ExpressionSetIntroduction.pdf). 
+MuSiC [@music] takes a bulk RNA-seq data that contain a mixture expression of various cell types, and a scRNA-seq data that include the single cell expression from multiple samples as input. Both datasets should be in the form of `ExpressionSet`, a convenient data structure to hold expression data along with sample/feature annotation. The details of constructing `ExpressionSet` can be found on [this page](https://www.bioconductor.org/packages/release/bioc/vignettes/Biobase/inst/doc/ExpressionSetIntroduction.pdf). 
 
 ```{r step1_data_pre, message=FALSE}
 library(MuSiC)
@@ -71,10 +71,7 @@ seger.eset
 We constrained our analysis on 6 well-studied cell types: acinar, alpha, beta, delta, ductal and gamma. 
 
 ```{r step1, message=FALSE}
-music_result = music_prop(bulk.eset = fadista.eset, sc.eset = seger.eset, clusters = 'cellType',
-                               samples = 'sampleID', 
-                          select.ct = c('acinar','alpha', 'beta', 
-                                        'delta','ductal','gamma'), verbose = F)
+music_result = music_prop(bulk.eset = fadista.eset, sc.eset = seger.eset, clusters = 'cellType', samples = 'sampleID', select.ct = c('acinar','alpha', 'beta', 'delta','ductal','gamma'), verbose = F)
 est.prop = music_result$Est.prop.weighted
 ```
 
@@ -102,7 +99,7 @@ To detect cell-type-specific AEI in the population, for cell type $k$, we test t
 
 $$H_0: \theta^k=0  \;\; vs \;\;  H_1: \theta^k \neq 0$$
 
-using a t statistic. Details of `BSCET` can be found in the Method section of [our manuscript](https://www.biorxiv.org/content/10.1101/2020.08.26.267815v1).
+using a t statistic. Details of `BSCET` can be found in the Method section of [our manuscript](https://journals.plos.org/plosgenetics/article?id=10.1371/journal.pgen.1009080).
 
 ### Data preparation
 
@@ -120,15 +117,14 @@ The tables below show an example allelic RNA-seq data of SNP chr1:22336305.
 ```{r step2, echo=FALSE, message=FALSE}
 DATA = read.table('example_data.txt',header=T)
 dat = DATA[,c('SNP','id', 'ref','alt')]
-dat$`count difference` = dat$ref-dat$alt
 datatable(dat, class = 'cell-border stripe', rownames = FALSE, 
           options = list(pageLength = 5, fixedColumns = T, dom='rtp', pagingType = "numbers",
                          columnDefs = list(list(className = 'dt-center', targets = 0:3))))
 ```
 
-Second, we calculate the subject-specific total number of cells in the bulk tissue, i.e., $m_j$. As $m_j$ is not observed for the bulk data, we esimate it using the individual-specific library size factor, which can be obtained by the function `estimateSizeFactor` of DESeq2 [@deseq]. A detailed tutorial of DESeq2 [@deseq] can be found on [this page](http://master.bioconductor.org/packages/release/workflows/vignettes/rnaseqGene/inst/doc/rnaseqGene.html).
+Second, we calculate the subject-specific total number of cells in the bulk tissue, i.e., $m_j$. As $m_j$ is not observed for the bulk data, we esimate it using the individual-specific library size factor, which can be obtained by the function `estimateSizeFactor` of DESeq2 [@deseq2]. A detailed tutorial of DESeq2 [@deseq2] can be found on [this page](http://master.bioconductor.org/packages/release/workflows/vignettes/rnaseqGene/inst/doc/rnaseqGene.html).
 
-```{r deseq, message=FALSE,warning=FALSE}
+```{r deseq2, message=FALSE,warning=FALSE}
 library(DESeq2)
 expmat <- exprs(fadista.eset)
 coldata = matrix(colnames(expmat),ncol=1)
